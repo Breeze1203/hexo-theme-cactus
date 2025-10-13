@@ -17,6 +17,7 @@ nav:
   home: /
   about: /about/
   articles: /archives/
+  search: /search/
   projects: https://github.com/Breeze1203
 
 
@@ -39,14 +40,6 @@ social_links:
   -
     icon: mail
     link: mailto:tpeng9240@gmail.com
-  -
-    icon: mastodon
-    label: mastodon.social
-    link: https://mastodon.social/@alice
-  -
-    icon: mastodon
-    label: fosstodon.org
-    link: https://fosstodon.org/@alice
 
 # Customize the overview with displaying a tagcloud on the index page.
 # Options: https://hexo.io/docs/helpers.html#tagcloud
@@ -58,7 +51,7 @@ tags_overview: false
 #   - post_count: whether to show only the x most recent posts.
 #   - sort_updated: sort posts by last modification date instead of creation date.
 posts_overview:
-  show_all_posts: false
+  show_all_posts: true
   post_count: 10
   sort_updated: false
 
