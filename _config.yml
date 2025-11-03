@@ -35,8 +35,8 @@ social_links:
     icon: twitter
     link: /
   -
-    icon: facebook
-    link: /
+    icon: rss
+    link: /atom.xml
   -
     icon: mail
     link: mailto:tpeng9240@gmail.com
