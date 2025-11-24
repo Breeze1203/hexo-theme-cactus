@@ -1,0 +1,406 @@
+<script src="https://code.responsivevoice.org/responsivevoice.js?key=zf4bBW7l"></script>
+
+<style>
+    .radio-container { max-width: 800px; margin: 40px auto; padding: 20px; font-family: sans-serif; }
+
+    .player-box {
+        background: #fff; padding: 20px; border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center;
+        position: sticky; top: 10px; z-index: 100; border: 1px solid #eee;
+    }
+    .status-text { font-size: 1.2em; color: #333; margin-bottom: 15px; font-weight: bold; min-height: 1.5em; }
+
+    .btn-group button {
+        padding: 8px 20px; margin: 0 5px; cursor: pointer; border: none; border-radius: 20px;
+        font-size: 1em; transition: 0.3s; color: white;
+    }
+    .btn-stop { background: #ff4757; }
+    .btn-pause { background: #eccc68; }
+    .btn-resume { background: #2ed573; }
+
+    .article-list { list-style: none; padding: 0; margin-top: 20px; min-height: 200px; }
+    .article-item {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 15px; border-bottom: 1px solid #eee;
+    }
+    .article-item:hover { background-color: #f9f9f9; }
+    .article-item.active { background-color: #e6f7ff; border-left: 4px solid #1e90ff; }
+
+    .play-btn {
+        background: #1e90ff; color: white; border: none; padding: 5px 15px;
+        border-radius: 15px; cursor: pointer;
+    }
+
+    .pagination-box { margin-top: 30px; text-align: center; display: flex; justify-content: center; gap: 15px; }
+    .page-btn { padding: 8px 16px; background: white; border: 1px solid #ddd; cursor: pointer; border-radius: 4px; }
+    .page-btn:disabled { background: #f5f5f5; color: #ccc; cursor: not-allowed; }
+</style>
+
+<div class="radio-container">
+    <div class="player-box">
+        <div id="player-status" class="status-text">🎧 正在加载文章数据...</div>
+        <div class="btn-group">
+            <button class="btn-resume" onclick="resumeAudio()">继续</button>
+            <button class="btn-pause" onclick="pauseAudio()">暂停</button>
+            <button class="btn-stop" onclick="stopAudio()">⏹ 停止</button>
+        </div>
+        <div style="margin-top: 10px; font-size: 0.9em; color: #666;">
+            <label style="cursor: pointer;">
+                <input type="checkbox" id="useNativeToggle" onchange="toggleAPI(this.checked)">
+                使用浏览器原生语音（如果ResponsiveVoice无声音）
+            </label>
+        </div>
+    </div>
+
+    <ul class="article-list" id="list-container">
+    </ul>
+
+    <div class="pagination-box">
+        <button class="page-btn" id="prevBtn" onclick="changePage(-1)">上一页</button>
+        <span id="pageInfo" style="line-height: 34px;">1 / 1</span>
+        <button class="page-btn" id="nextBtn" onclick="changePage(1)">下一页</button>
+    </div>
+</div>
+
+<script>
+    // --- 1. 数据注入 (修复版) ---
+    const blogData = [
+        <%
+        // 获取所有文章并按日期排序
+        const posts = site.posts.sort('date', -1).data;
+
+        posts.forEach(function(post, index) {
+            // 在服务端(EJS)先进行数据清洗
+            let rawContent = post.content || '';
+
+            // 1. 去掉 style/script
+            rawContent = rawContent.replace(/<style[\s\S]*?<\/style>/gi, "");
+            rawContent = rawContent.replace(/<script[\s\S]*?<\/script>/gi, "");
+
+            // 2. 替换表格和代码块
+            rawContent = rawContent.replace(/<table[\s\S]*?<\/table>/gi, "，表格数据已跳过，");
+            rawContent = rawContent.replace(/<figure[\s\S]*?<\/figure>/gi, "，代码块已跳过，");
+            rawContent = rawContent.replace(/<pre[\s\S]*?<\/pre>/gi, "，代码块已跳过，");
+            rawContent = rawContent.replace(/<code[\s\S]*?<\/code>/gi, "");
+
+            // 3. 去掉 HTML 标签
+            rawContent = rawContent.replace(/<[^>]+>/g, "");
+
+            // 4. 解码 HTML 实体
+            rawContent = rawContent.replace(/&nbsp;/g, " ")
+                    .replace(/&lt;/g, "<")
+                    .replace(/&gt;/g, ">")
+                    .replace(/&amp;/g, "&")
+                    .replace(/&quot;/g, '"');
+
+            // 5. 压缩空白
+            let cleanText = rawContent.replace(/[\r\n]+/g, "，")
+                    .replace(/\s+/g, " ")
+                    .trim();
+
+            // 限制内容长度（可选，避免过长）
+            if (cleanText.length > 2000) {
+                cleanText = cleanText.substring(0, 2000) + "...";
+            }
+        %>
+        {
+            title: <%- JSON.stringify(post.title || '无标题') %>,
+            date: "<%= date(post.date, 'YYYY-MM-DD') %>",
+            content: <%- JSON.stringify(cleanText) %>
+        }<%= index < posts.length - 1 ? ',' : '' %>
+        <% }); %>
+    ];
+
+    console.log("✅ 成功加载文章数量:", blogData.length);
+    console.log("📝 文章列表预览:", blogData.slice(0, 3));
+
+    // --- 2. 分页逻辑 ---
+    let currentPage = 1;
+    const itemsPerPage = 10;
+
+    function renderList() {
+        const listDom = document.getElementById('list-container');
+        if (!listDom) {
+            console.error("❌ 找不到列表容器");
+            return;
+        }
+
+        listDom.innerHTML = "";
+
+        // 容错：如果没有数据
+        if (!blogData || blogData.length === 0) {
+            document.getElementById('player-status').innerText = "❌ 未找到任何文章";
+            listDom.innerHTML = '<li style="padding:20px;text-align:center;color:#999;">暂无文章数据</li>';
+            return;
+        } else {
+            document.getElementById('player-status').innerText = "🎧 准备就绪，请选择文章播放";
+        }
+
+        const totalPages = Math.ceil(blogData.length / itemsPerPage);
+        const start = (currentPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        const pagePosts = blogData.slice(start, end);
+
+        pagePosts.forEach((post, i) => {
+            const globalIndex = start + i;
+            const li = document.createElement('li');
+            li.className = 'article-item';
+            li.id = 'item-' + globalIndex;
+
+            // 安全地显示标题和日期
+            const safeTitle = (post.title || '无标题').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            const safeDate = post.date || '未知日期';
+
+            li.innerHTML = `
+                <div>
+                    <div style="font-weight:bold; font-size:1.1em">${safeTitle}</div>
+                    <div style="font-size:0.8em; color:#999">${safeDate}</div>
+                </div>
+                <button class="play-btn" onclick="playPost(${globalIndex})">▶ 播放</button>
+            `;
+            listDom.appendChild(li);
+        });
+
+        document.getElementById('pageInfo').innerText = `${currentPage} / ${totalPages}`;
+        document.getElementById('prevBtn').disabled = currentPage === 1;
+        document.getElementById('nextBtn').disabled = currentPage === totalPages;
+    }
+
+    function changePage(delta) {
+        currentPage += delta;
+        renderList();
+        // 滚动到顶部
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // --- 3. 播放逻辑 (修复版) ---
+    let currentPlayingIndex = -1;
+    let isPlaying = false;
+    let useNativeAPI = false; // 是否使用原生API
+
+    function playPost(index) {
+        const post = blogData[index];
+
+        if (!post) {
+            alert("文章数据错误");
+            return;
+        }
+
+        // 先停止当前播放
+        if (isPlaying) {
+            stopAudio();
+        }
+
+        // 准备要朗读的文本
+        let text = post.content || '';
+
+        // 🔍 调试：检查内容
+        console.log("📄 文章标题:", post.title);
+        console.log("📝 文章内容长度:", text.length);
+        console.log("📝 文章内容前100字:", text.substring(0, 100));
+
+        if (!text || text.trim().length < 10) {
+            alert(`文章"${post.title}"的内容太短或为空，无法朗读`);
+            return;
+        }
+
+        // 完整朗读文本
+        const fullText = `${post.title}。${text}`;
+        console.log("🎤 准备朗读，总字数:", fullText.length);
+
+        updateStatus(`🔊 正在朗读：${post.title}`);
+        highlightItem(index);
+        currentPlayingIndex = index;
+
+        // 尝试使用 ResponsiveVoice
+        if (window.responsiveVoice && !useNativeAPI) {
+            setTimeout(() => {
+                isPlaying = true;
+
+                console.log("🎙️ 使用 ResponsiveVoice 播放");
+                responsiveVoice.speak(fullText, "Chinese Female", {
+                    pitch: 1,
+                    rate: 1.2,
+                    volume: 1,
+                    onstart: () => {
+                        console.log("✅ ResponsiveVoice 开始播放");
+                        isPlaying = true;
+                    },
+                    onend: () => {
+                        console.log("✅ ResponsiveVoice 播放完成");
+                        updateStatus("✅ 播放结束");
+                        removeHighlight();
+                        isPlaying = false;
+                        currentPlayingIndex = -1;
+                    },
+                    onerror: (error) => {
+                        console.error("❌ ResponsiveVoice 错误:", error);
+                        if (error.error !== 'interrupted') {
+                            updateStatus("⚠️ ResponsiveVoice失败，尝试使用浏览器原生语音");
+                            // 切换到原生API
+                            useNativeAPI = true;
+                            setTimeout(() => playWithNativeAPI(fullText, post.title, index), 500);
+                        }
+                        isPlaying = false;
+                    }
+                });
+            }, 150);
+        } else {
+            // 使用浏览器原生 Web Speech API
+            playWithNativeAPI(fullText, post.title, index);
+        }
+    }
+
+    // 使用浏览器原生语音API播放
+    function playWithNativeAPI(text, title, index) {
+        if (!('speechSynthesis' in window)) {
+            alert("您的浏览器不支持语音播放功能");
+            return;
+        }
+
+        console.log("🎙️ 使用浏览器原生 Web Speech API");
+
+        const utterance = new SpeechSynthesisUtterance(text);
+
+        // 获取中文语音
+        const voices = speechSynthesis.getVoices();
+        const chineseVoice = voices.find(voice =>
+            voice.lang.includes('zh') || voice.lang.includes('CN')
+        );
+
+        if (chineseVoice) {
+            utterance.voice = chineseVoice;
+            console.log("🔊 使用语音:", chineseVoice.name);
+        } else {
+            console.log("⚠️ 未找到中文语音，使用默认语音");
+        }
+
+        utterance.rate = 1.2;
+        utterance.pitch = 1;
+        utterance.volume = 1;
+
+        utterance.onstart = () => {
+            console.log("✅ 原生API开始播放");
+            isPlaying = true;
+            updateStatus(`🔊 正在朗读：${title}`);
+            highlightItem(index);
+        };
+
+        utterance.onend = () => {
+            console.log("✅ 原生API播放完成");
+            updateStatus("✅ 播放结束");
+            removeHighlight();
+            isPlaying = false;
+            currentPlayingIndex = -1;
+        };
+
+        utterance.onerror = (event) => {
+            console.error("❌ 原生API播放错误:", event);
+            if (event.error !== 'interrupted') {
+                updateStatus("❌ 播放失败: " + event.error);
+            }
+            removeHighlight();
+            isPlaying = false;
+            currentPlayingIndex = -1;
+        };
+
+        // 停止当前播放
+        speechSynthesis.cancel();
+
+        // 延迟播放避免冲突
+        setTimeout(() => {
+            speechSynthesis.speak(utterance);
+        }, 100);
+    }
+
+    function pauseAudio() {
+        if(window.responsiveVoice && responsiveVoice.isPlaying()) {
+            responsiveVoice.pause();
+            updateStatus("⏸ 已暂停");
+            console.log("⏸ 暂停播放");
+        } else {
+            console.log("⚠️ 当前没有正在播放的内容");
+        }
+    }
+
+    function resumeAudio() {
+        if(window.responsiveVoice) {
+            responsiveVoice.resume();
+            updateStatus("▶️ 继续播放");
+            console.log("▶️ 恢复播放");
+        }
+    }
+
+    function stopAudio() {
+        console.log("⏹ 执行停止操作");
+
+        // 停止 ResponsiveVoice
+        if (window.responsiveVoice) {
+            responsiveVoice.cancel();
+        }
+
+        // 停止原生 API
+        if ('speechSynthesis' in window) {
+            speechSynthesis.cancel();
+        }
+
+        updateStatus("⏹ 已停止");
+        removeHighlight();
+        isPlaying = false;
+        currentPlayingIndex = -1;
+    }
+
+    function updateStatus(text) {
+        const el = document.getElementById('player-status');
+        if(el) el.innerText = text;
+    }
+
+    function highlightItem(index) {
+        removeHighlight();
+        const item = document.getElementById('item-' + index);
+        if(item) {
+            item.classList.add('active');
+            // 滚动到当前项
+            item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
+
+    function removeHighlight() {
+        document.querySelectorAll('.article-item.active').forEach(el => el.classList.remove('active'));
+    }
+
+    // 切换API
+    function toggleAPI(useNative) {
+        useNativeAPI = useNative;
+        console.log("🔄 切换语音引擎:", useNative ? "浏览器原生API" : "ResponsiveVoice");
+        updateStatus(useNative ? "🔧 已切换到浏览器原生语音" : "🔧 已切换到 ResponsiveVoice");
+    }
+
+    // 初始化
+    window.addEventListener('DOMContentLoaded', function() {
+        console.log("🚀 页面加载完成，开始渲染列表");
+        renderList();
+
+        // 检测语音支持
+        if ('speechSynthesis' in window) {
+            // 加载语音列表
+            speechSynthesis.addEventListener('voiceschanged', () => {
+                const voices = speechSynthesis.getVoices();
+                const chineseVoices = voices.filter(v => v.lang.includes('zh') || v.lang.includes('CN'));
+                console.log("🔊 可用的中文语音:", chineseVoices.map(v => v.name));
+            });
+        }
+
+        // 检测 ResponsiveVoice
+        setTimeout(() => {
+            if (window.responsiveVoice) {
+                console.log("✅ ResponsiveVoice 已加载");
+            } else {
+                console.warn("⚠️ ResponsiveVoice 未加载，将使用原生API");
+                document.getElementById('useNativeToggle').checked = true;
+                useNativeAPI = true;
+            }
+        }, 1000);
+    });
+
+</script>
