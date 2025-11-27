@@ -41,6 +41,7 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "*",
     "clipboard": "^2.0.4",
+    "hexo-generator-search": "^2.4.3",
     "jquery": "^3.3.1",
     "justifiedGallery": "^3.6.5",
     "vazir-font": "*"
