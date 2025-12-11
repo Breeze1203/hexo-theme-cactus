@@ -14,11 +14,12 @@ direction: ltr
 # navigation menu. Optionally, you can add translations for the 'Key' in
 # languages/*.yml
 nav:
-  search: /search/
+  Home: /
+  Search: /search/
   Tags: /tags/
   Essay: /essay/
   Radio: /radio/
-  about: /about/
+  About: /about/
   Book: /book/
 
 # Links to your social media accounts.
@@ -27,10 +28,7 @@ nav:
 # only 'mail' is an exception.
 # You can optionally add a 'label' key to set the title attribute on the link. 
 # 'icon' value will be used as title when 'label' is missing.
-social_links:
-  -
-    icon: tag
-    link: /tags
+social_links:s
   -
     icon: github
     link: https://github.com/Breeze1203
@@ -43,9 +41,6 @@ social_links:
   -
     icon: mail
     link: mailto:tpeng9240@gmail.com
-  - 
-    icon: list
-    link: /categories
 
 # Customize the overview with displaying a tagcloud on the index page.
 # Options: https://hexo.io/docs/helpers.html#tagcloud
