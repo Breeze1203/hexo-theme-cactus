@@ -22,6 +22,7 @@ nav:
   about: /about/
   Book: /book/
 
+
 # Links to your social media accounts.
 # The 'icon' keys should correspond to Fontawesome icon names
 # (see https://fontawesome.com/icons?d=gallery&s=brands);
@@ -40,8 +41,7 @@ social_links:
     link: /atom.xml
   -
     icon: mail
-    link: mailto:tpeng9240@gmail.com
-  - 
+    link: mailto:tpeng9240@gmail.com 
 
 # Customize the overview with displaying a tagcloud on the index page.
 # Options: https://hexo.io/docs/helpers.html#tagcloud
