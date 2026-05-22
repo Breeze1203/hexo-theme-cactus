@@ -8,7 +8,7 @@
 projects_url: http://github.com/probberechts
 
 # Set the page direction to RTL or LTR. default is LTR. (if you set it 'rtl', the 'vazir' font will be loaded.)
-direction: rtl
+direction: ltr
 # Configure the navigation menu.
 # A pair 'Key: url' will result in a link to 'url' with the name 'Key' in the
 # navigation menu. Optionally, you can add translations for the 'Key' in
@@ -55,7 +55,7 @@ tags_overview: false
 posts_overview:
   show_all_posts: true
   post_count: 10
-  sort_updated: false
+  sort_updated: true
 
 # Customize the archive view.
 # Options:
@@ -63,7 +63,7 @@ posts_overview:
 # Note: this does not work together with pagination, since the pagination
 # plugin will sort pages by date of creation.
 archive:
-   sort_updated: false
+   sort_updated: true
 
 # Customize the article view.
 # Options:
@@ -103,7 +103,7 @@ logo:
   width: 50
   height: 50
   url: /images/logo.png
-  gravatar: false
+  gravatar: true
   grayout: true
 
 # Customize the favicons.
