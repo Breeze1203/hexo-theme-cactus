@@ -8,7 +8,7 @@
 projects_url: http://github.com/probberechts
 
 # Set the page direction to RTL or LTR. default is LTR. (if you set it 'rtl', the 'vazir' font will be loaded.)
-direction: ltr
+direction: rtl
 # Configure the navigation menu.
 # A pair 'Key: url' will result in a link to 'url' with the name 'Key' in the
 # navigation menu. Optionally, you can add translations for the 'Key' in
@@ -69,12 +69,12 @@ archive:
 # Options:
 #   - show_updated: show the last modification date.
 post:
-  show_updated: false
+  show_updated: true
 
 # Customize the copyright years
 # Note: if start_year/end_year not provided, will use current year.
 copyright:
-  start_year: 2016
+  start_year: 2022
   end_year:
 
 # Customize the 404 page
@@ -133,10 +133,10 @@ favicon:
 # Set the color scheme.
 # Available color schemes are 'dark', 'light', 'classic' and 'white'.
 # Alternatively, add your own custom color scheme to source/css/_colors.
-colorscheme: light
+colorscheme: classic
 
 # Maximal width of the page in rem units.
-page_width: 48
+page_width: 60
 
 
 ##############################################################################
@@ -169,8 +169,8 @@ disqus:
 
 # Fill in your Utterances data to enable Utterances comments
 utterances:
-  enabled: false
-  repo: owner/githubrepo
+  enabled: true
+  repo: Breeze1203/Breeze1203.github.io
   issue_term: pathname
   label: Comment
   theme: github-dark
