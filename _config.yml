@@ -103,7 +103,7 @@ logo:
   width: 50
   height: 50
   url: /images/logo.png
-  gravatar: true
+  gravatar: false
   grayout: true
 
 # Customize the favicons.
