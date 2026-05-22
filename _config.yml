@@ -55,7 +55,7 @@ tags_overview: false
 posts_overview:
   show_all_posts: true
   post_count: 10
-  sort_updated: true
+  sort_updated: false
 
 # Customize the archive view.
 # Options:
@@ -63,7 +63,7 @@ posts_overview:
 # Note: this does not work together with pagination, since the pagination
 # plugin will sort pages by date of creation.
 archive:
-   sort_updated: true
+   sort_updated: false
 
 # Customize the article view.
 # Options:
