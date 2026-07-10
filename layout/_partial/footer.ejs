@@ -17,10 +17,33 @@
   </div>
 </footer>
 
+<!-- mermaid -->
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<!-- svg-pan-zoom -->
+<script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
 
 <script>
-mermaid.initialize({
-    startOnLoad: true
-});
+  mermaid.initialize({
+    startOnLoad: false   // 改成 false，自己控制渲染时机
+  });
+
+  window.addEventListener('load', async () => {
+    await mermaid.run();  // v10 的 run() 返回 Promise，渲染完再往下走
+
+    document.querySelectorAll('.mermaid svg').forEach(svg => {
+      // 给 svg 一个明确的高度，pan-zoom 才有拖拽空间
+      svg.style.maxWidth = '100%';
+      svg.style.height = '600px';
+
+      svgPanZoom(svg, {
+        zoomEnabled: true,
+        controlIconsEnabled: true,
+        fit: true,
+        center: true,
+        minZoom: 0.3,
+        maxZoom: 15,
+        zoomScaleSensitivity: 0.4
+      });
+    });
+  });
 </script>
