@@ -19,29 +19,25 @@ nav:
   Tags: /tags/
   Essay: /essay/
   Radio: /radio/
+  tools: /tools/
   about: /about/
   Book: /book/
-
 
 # Links to your social media accounts.
 # The 'icon' keys should correspond to Fontawesome icon names
 # (see https://fontawesome.com/icons?d=gallery&s=brands);
 # only 'mail' is an exception.
-# You can optionally add a 'label' key to set the title attribute on the link. 
+# You can optionally add a 'label' key to set the title attribute on the link.
 # 'icon' value will be used as title when 'label' is missing.
 social_links:
-  -
-    icon: github
+  - icon: github
     link: https://github.com/Breeze1203
-  -
-    icon: twitter
+  - icon: twitter
     link: /
-  -
-    icon: rss
+  - icon: rss
     link: /atom.xml
-  -
-    icon: mail
-    link: mailto:tpeng9240@gmail.com 
+  - icon: mail
+    link: mailto:tpeng9240@gmail.com
 
 # Customize the overview with displaying a tagcloud on the index page.
 # Options: https://hexo.io/docs/helpers.html#tagcloud
@@ -63,7 +59,7 @@ posts_overview:
 # Note: this does not work together with pagination, since the pagination
 # plugin will sort pages by date of creation.
 archive:
-   sort_updated: false
+  sort_updated: false
 
 # Customize the article view.
 # Options:
@@ -84,7 +80,6 @@ error_404:
   enabled: true
   title: "404 Page Not Found"
   description: "The page you are looking for might have been removed, had its name changed, or is temporarily unavailable."
-
 
 ##############################################################################
 # Look and Feel
@@ -138,7 +133,6 @@ colorscheme: white
 # Maximal width of the page in rem units.
 page_width: 60
 
-
 ##############################################################################
 # Miscellaneous
 ##############################################################################
@@ -152,7 +146,6 @@ open_graph:
   fb_admins:
   twitter_id:
   google_plus:
-
 
 ##############################################################################
 # Plugins
